@@ -10,12 +10,13 @@ import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 
 import whiteListData from "./whitelist.json";
 import path from "path";
+import { isValidSuiAddress } from "@mysten/sui/utils";
 
 async function main() {
   const RPC_URL = process.env.RPC_URL!;
   const PRIVATE_KEY_BASE64 = process.env.PRIVATE_KEY_BASE64!;
   const COLLECTION_PACKAGE_ID = process.env.COLLECTION_PACKAGE_ID!;
-  const DISTRUBTION_CAP_ID = process.env.DISTRUBTION_CAP_ID!;
+  const DISTRIBUTION_CAP_ID = process.env.DISTRIBUTION_CAP_ID!;
 
   // create a client connected to RPC
   const client = new SuiClient({ url: RPC_URL });
@@ -27,7 +28,7 @@ async function main() {
   console.log("Using signer address: ", signer_address);
 
   // create an progress file (process.json) to track creation process
-  const progressFilePath = path.join(__dirname, "wl-og-progress.json");
+  const progressFilePath = path.join(__dirname, "wl-progress.json");
   let progressData = {};
   if (fs.existsSync(progressFilePath)) {
     progressData = JSON.parse(fs.readFileSync(progressFilePath, "utf8"));
@@ -38,8 +39,7 @@ async function main() {
   // Looping and batching: mint 1000 addresses per iteration, persisting progress
   const BATCH_SIZE = 1000;
 
-  // fix this: ogData will be an object with two fields that are array's of
-  const whitelist = whiteListData as Array<string>;
+  const whitelist = cleanList(whiteListData as Array<string>);
 
   // Initialize or resume progress
   const currentIndex: number = (progressData as any).nextIndex ?? 0;
@@ -61,7 +61,7 @@ async function main() {
       tx.moveCall({
         target: `${COLLECTION_PACKAGE_ID}::distribution::new_whitelist_cap`,
         arguments: [
-          tx.object(DISTRUBTION_CAP_ID),
+          tx.object(DISTRIBUTION_CAP_ID),
           tx.pure.u64(10),
           tx.pure.address(whitelist_address),
         ],
@@ -108,3 +108,45 @@ main().catch((e) => {
   console.error("Script failed:", e);
   process.exit(1);
 });
+
+function cleanList(list: Array<string>): Array<string> {
+  const cleanedList: Array<string> = Array.from(new Set(list));
+  const invalidAddresses: Array<string> = cleanedList.filter(
+    (address: string) => !isValidSuiAddress(address)
+  );
+
+  // for all invalid addresses prepend a 0 after 0x (ie. 0x123123 => 0x0123123),
+  // reverify them, add the good ones, and store only the bad ones
+  const recovered: Array<string> = [];
+  const stillInvalid: Array<string> = [];
+  for (const address of invalidAddresses as Array<string>) {
+    if (!address.startsWith("0x")) {
+      stillInvalid.push(address);
+      continue;
+    }
+    const fixedOneZero = "0x0" + address.slice(2);
+    if (isValidSuiAddress(fixedOneZero)) {
+      recovered.push(fixedOneZero);
+    } else {
+      const fixedTwoZeros = "0x00" + address.slice(2);
+      if (isValidSuiAddress(fixedTwoZeros)) {
+        recovered.push(fixedTwoZeros);
+      } else {
+        stillInvalid.push(address);
+      }
+    }
+  }
+
+  // Keep only originally valid entries, plus recovered ones; ensure dedupe
+  const finalCleaned = Array.from(
+    new Set([...cleanedList.filter((a) => isValidSuiAddress(a)), ...recovered])
+  );
+
+  if (stillInvalid.length > 0) {
+    fs.writeFileSync(
+      "invalid_whitelist_addresses.json",
+      JSON.stringify(stillInvalid, null, 2)
+    );
+  }
+  return finalCleaned;
+}

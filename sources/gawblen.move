@@ -1,4 +1,4 @@
-module gawblenz::gawblen;
+module gawblenz::gawblenz;
 
 use gawblenz::distribution::Distribution;
 use std::string::{Self, String};

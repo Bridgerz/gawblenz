@@ -2,7 +2,7 @@
 module gawblenz::gawblenz_test;
 
 use gawblenz::distribution::{Self, Distribution, OGCap, WhitelistCap};
-use gawblenz::gawblen::{Self, Gawblen};
+use gawblenz::gawblenz::{Self, Gawblen};
 use sui::coin::Coin;
 use sui::random::Random;
 use sui::sui::SUI;
@@ -26,13 +26,13 @@ fun test_gawblenz() {
     );
 
     scenario.next_tx(admin);
-    gawblen::init_for_testing(scenario.ctx());
+    gawblenz::init_for_testing(scenario.ctx());
     scenario.next_tx(admin);
     distribution::init_for_testing(scenario.ctx());
     scenario.next_tx(admin);
 
     let distribution_cap = distribution::create_distribution_cap_for_testing(scenario.ctx());
-    let mut admin_cap = gawblen::create_admin_cap_for_testing(scenario.ctx());
+    let mut admin_cap = gawblenz::create_admin_cap_for_testing(scenario.ctx());
 
     distribution::new<Gawblen>(
         admin,
@@ -44,7 +44,7 @@ fun test_gawblenz() {
 
     let mut distribution = scenario.take_shared<Distribution<Gawblen>>();
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -52,7 +52,7 @@ fun test_gawblenz() {
         scenario.ctx(),
     );
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -60,7 +60,7 @@ fun test_gawblenz() {
         scenario.ctx(),
     );
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -158,13 +158,13 @@ fun test_gawblenz_og() {
     );
 
     scenario.next_tx(admin);
-    gawblen::init_for_testing(scenario.ctx());
+    gawblenz::init_for_testing(scenario.ctx());
     scenario.next_tx(admin);
     distribution::init_for_testing(scenario.ctx());
     scenario.next_tx(admin);
 
     let distribution_cap = distribution::create_distribution_cap_for_testing(scenario.ctx());
-    let mut admin_cap = gawblen::create_admin_cap_for_testing(scenario.ctx());
+    let mut admin_cap = gawblenz::create_admin_cap_for_testing(scenario.ctx());
 
     distribution::new_og_cap(
         &distribution_cap,
@@ -186,7 +186,7 @@ fun test_gawblenz_og() {
 
     let mut distribution = scenario.take_shared<Distribution<Gawblen>>();
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -194,7 +194,7 @@ fun test_gawblenz_og() {
         scenario.ctx(),
     );
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -202,7 +202,7 @@ fun test_gawblenz_og() {
         scenario.ctx(),
     );
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -281,13 +281,13 @@ fun test_gawblenz_whitelist() {
     );
 
     scenario.next_tx(admin);
-    gawblen::init_for_testing(scenario.ctx());
+    gawblenz::init_for_testing(scenario.ctx());
     scenario.next_tx(admin);
     distribution::init_for_testing(scenario.ctx());
     scenario.next_tx(admin);
 
     let distribution_cap = distribution::create_distribution_cap_for_testing(scenario.ctx());
-    let mut admin_cap = gawblen::create_admin_cap_for_testing(scenario.ctx());
+    let mut admin_cap = gawblenz::create_admin_cap_for_testing(scenario.ctx());
 
     distribution::new_whitelist_cap(
         &distribution_cap,
@@ -309,7 +309,7 @@ fun test_gawblenz_whitelist() {
 
     let mut distribution = scenario.take_shared<Distribution<Gawblen>>();
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -317,7 +317,7 @@ fun test_gawblenz_whitelist() {
         scenario.ctx(),
     );
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -325,7 +325,7 @@ fun test_gawblenz_whitelist() {
         scenario.ctx(),
     );
 
-    gawblen::create(
+    gawblenz::create(
         &mut admin_cap,
         &mut distribution,
         b"https://gawblenz.com/image.png".to_string(),
@@ -393,13 +393,13 @@ fun test_generate_and_mint_all() {
     let mut scenario = test_scenario::begin(@0x0);
 
     scenario.next_tx(admin);
-    gawblen::init_for_testing(scenario.ctx());
+    gawblenz::init_for_testing(scenario.ctx());
     scenario.next_tx(admin);
     distribution::init_for_testing(scenario.ctx());
     scenario.next_tx(admin);
 
     let distribution_cap = distribution::create_distribution_cap_for_testing(scenario.ctx());
-    let mut admin_cap = gawblen::create_admin_cap_for_testing(scenario.ctx());
+    let mut admin_cap = gawblenz::create_admin_cap_for_testing(scenario.ctx());
 
     distribution::new<Gawblen>(
         admin,
@@ -412,7 +412,7 @@ fun test_generate_and_mint_all() {
     let mut distribution = scenario.take_shared<Distribution<Gawblen>>();
 
     admin_cap.max_id().do!(|_| {
-        gawblen::create(
+        gawblenz::create(
             &mut admin_cap,
             &mut distribution,
             b"https://gawblenz.com/image.png".to_string(),

@@ -37,7 +37,7 @@ async function main() {
   }
 
   // Looping and batching: mint 333 NFTs per iteration, persisting progress
-  const BATCH_SIZE = 333;
+  const BATCH_SIZE = 100;
 
   // Normalize collection items: expect an array of items with image_url and optional traits
   type CollectionItem = {
@@ -82,10 +82,6 @@ async function main() {
       const traits = tx.moveCall({
         target: `0x2::vec_map::from_keys_values`,
         arguments: [
-          tx.moveCall({
-            target: `0x2::vec_map::empty`,
-            typeArguments: ["0x1::string::String", "0x1::string::String"],
-          }),
           tx.pure.vector("string", keys),
           tx.pure.vector("string", values),
         ],

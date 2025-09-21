@@ -1,3 +1,6 @@
 build/*
 scripts/node_modules
 scripts/.env
+scripts/og-progress.json
+scripts/wl-progress.json
+scripts/progress.json
