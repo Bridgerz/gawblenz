@@ -57,9 +57,9 @@ fun init(otw: DISTRIBUTION, ctx: &mut TxContext) {
 }
 
 public fun new<T: key + store>(
-    ctx: &mut TxContext,
     admin: address,
     _: &DistributionCap,
+    ctx: &mut TxContext,
 ) {
     let distribution = Distribution<T> {
         id: object::new(ctx),
@@ -75,10 +75,10 @@ public fun new<T: key + store>(
 }
 
 public fun new_og_cap(
-    ctx: &mut TxContext,
     _: &DistributionCap,
     max_mint: u64,
     recipient: address,
+    ctx: &mut TxContext,
 ) {
     let cap = OGCap {
         id: object::new(ctx),
@@ -89,10 +89,10 @@ public fun new_og_cap(
 }
 
 public fun new_whitelist_cap(
-    ctx: &mut TxContext,
     _: &DistributionCap,
     max_mint: u64,
     recipient: address,
+    ctx: &mut TxContext,
 ) {
     let cap = WhitelistCap {
         id: object::new(ctx),

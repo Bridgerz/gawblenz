@@ -34,10 +34,10 @@ fun test_gawblenz() {
     let distribution_cap = distribution::create_distribution_cap_for_testing(scenario.ctx());
     let mut admin_cap = gawblen::create_admin_cap_for_testing(scenario.ctx());
 
-    distribution::new<gawblen::Gawblen>(
-        scenario.ctx(),
+    distribution::new<Gawblen>(
         admin,
         &distribution_cap,
+        scenario.ctx(),
     );
 
     scenario.next_tx(admin);
@@ -167,19 +167,19 @@ fun test_gawblenz_og() {
     let mut admin_cap = gawblen::create_admin_cap_for_testing(scenario.ctx());
 
     distribution::new_og_cap(
-        scenario.ctx(),
         &distribution_cap,
         1000,
         manny,
+        scenario.ctx(),
     );
     scenario.next_tx(admin);
 
     let mut og_cap = scenario.take_from_address<OGCap>(manny);
 
-    distribution::new<gawblen::Gawblen>(
-        scenario.ctx(),
+    distribution::new<Gawblen>(
         admin,
         &distribution_cap,
+        scenario.ctx(),
     );
 
     scenario.next_tx(admin);
@@ -290,19 +290,19 @@ fun test_gawblenz_whitelist() {
     let mut admin_cap = gawblen::create_admin_cap_for_testing(scenario.ctx());
 
     distribution::new_whitelist_cap(
-        scenario.ctx(),
         &distribution_cap,
         1000,
         manny,
+        scenario.ctx(),
     );
     scenario.next_tx(admin);
 
     let mut whitelist_cap = scenario.take_from_address<WhitelistCap>(manny);
 
-    distribution::new<gawblen::Gawblen>(
-        scenario.ctx(),
+    distribution::new<Gawblen>(
         admin,
         &distribution_cap,
+        scenario.ctx(),
     );
 
     scenario.next_tx(admin);
@@ -401,10 +401,10 @@ fun test_generate_and_mint_all() {
     let distribution_cap = distribution::create_distribution_cap_for_testing(scenario.ctx());
     let mut admin_cap = gawblen::create_admin_cap_for_testing(scenario.ctx());
 
-    distribution::new<gawblen::Gawblen>(
-        scenario.ctx(),
+    distribution::new<Gawblen>(
         admin,
         &distribution_cap,
+        scenario.ctx(),
     );
 
     scenario.next_tx(admin);
