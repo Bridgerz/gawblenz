@@ -2,10 +2,12 @@ module gawblenz::distribution;
 
 use sui::coin::Coin;
 use sui::event;
+use sui::kiosk;
 use sui::package;
 use sui::random::Random;
 use sui::sui::SUI;
 use sui::table_vec::{Self, TableVec};
+use sui::transfer_policy::TransferPolicy;
 
 const PHASE_NOT_STARTED: u8 = 0;
 const PHASE_OG: u8 = 1;
@@ -111,6 +113,7 @@ public fun new_whitelist_cap(
 
 entry fun mint<T: key + store>(
     distribution: &mut Distribution<T>,
+    policy: &TransferPolicy<T>,
     payment: Coin<SUI>,
     quantity: u64,
     random: &Random,
@@ -118,45 +121,26 @@ entry fun mint<T: key + store>(
 ) {
     assert!(distribution.phase == PHASE_PUBLIC);
     assert!(payment.value() >= distribution.public_price * quantity);
-    assert!(distribution.items.length() >= quantity);
 
-    quantity.do!(|_| {
-        let item = mint_internal(distribution, random, ctx);
-        // emit minted event with object ID
-        event::emit(Minted {
-            id: object::id(&item),
-        });
-        transfer::public_transfer(item, ctx.sender());
-    });
-
-    transfer::public_transfer(payment, distribution.admin);
+    mint_internal(distribution, payment, policy, quantity, random, ctx);
 
     distribution.total_minted = distribution.total_minted + quantity;
 }
 
 entry fun og_mint<T: key + store>(
     distribution: &mut Distribution<T>,
+    policy: &TransferPolicy<T>,
     payment: Coin<SUI>,
     cap: &mut OGCap,
     quantity: u64,
     random: &Random,
     ctx: &mut TxContext,
 ) {
-    assert!(cap.current_mint + quantity <= cap.max_mint);
     assert!(distribution.phase == PHASE_OG);
     assert!(payment.value() >= distribution.og_price * quantity);
-    assert!(distribution.items.length() >= quantity);
+    assert!(cap.current_mint + quantity <= cap.max_mint);
 
-    quantity.do!(|_| {
-        let item = mint_internal(distribution, random, ctx);
-        // emit minted event with object ID
-        event::emit(Minted {
-            id: object::id(&item),
-        });
-        transfer::public_transfer(item, ctx.sender());
-    });
-
-    transfer::public_transfer(payment, distribution.admin);
+    mint_internal(distribution, payment, policy, quantity, random, ctx);
 
     distribution.og_minted = distribution.og_minted + quantity;
     distribution.total_minted = distribution.total_minted + quantity;
@@ -165,6 +149,7 @@ entry fun og_mint<T: key + store>(
 
 entry fun whitelist_mint<T: key + store>(
     distribution: &mut Distribution<T>,
+    policy: &TransferPolicy<T>,
     payment: Coin<SUI>,
     cap: &mut WhitelistCap,
     quantity: u64,
@@ -174,18 +159,8 @@ entry fun whitelist_mint<T: key + store>(
     assert!(cap.current_mint + quantity <= cap.max_mint);
     assert!(distribution.phase == PHASE_WHITELIST);
     assert!(payment.value() >= distribution.whitelist_price * quantity);
-    assert!(distribution.items.length() >= quantity);
 
-    quantity.do!(|_| {
-        let item = mint_internal(distribution, random, ctx);
-        // emit minted event with object ID
-        event::emit(Minted {
-            id: object::id(&item),
-        });
-        transfer::public_transfer(item, ctx.sender());
-    });
-
-    transfer::public_transfer(payment, distribution.admin);
+    mint_internal(distribution, payment, policy, quantity, random, ctx);
 
     distribution.whitelist_minted = distribution.whitelist_minted + quantity;
     distribution.total_minted = distribution.total_minted + quantity;
@@ -262,17 +237,38 @@ public fun whitelist_minted<T: key + store>(
     distribution.whitelist_minted
 }
 
+#[allow(lint(self_transfer))]
 fun mint_internal<T: key + store>(
     distribution: &mut Distribution<T>,
+    payment: Coin<SUI>,
+    policy: &TransferPolicy<T>,
+    quantity: u64,
     random: &Random,
     ctx: &mut TxContext,
-): T {
+) {
     let mut generator = random.new_generator(ctx);
-    let index = generator.generate_u64_in_range(
-        0,
-        distribution.items.length() - 1,
-    );
-    distribution.items.swap_remove(index)
+
+    assert!(distribution.items.length() >= quantity);
+    let (mut kiosk, kiosk_owner_cap) = kiosk::new(ctx);
+    quantity.do!(|_| {
+        let index = generator.generate_u64_in_range(
+            0,
+            distribution.items.length() - 1,
+        );
+        let item = distribution.items.swap_remove(index);
+        // emit minted event with object ID
+        event::emit(Minted {
+            id: object::id(&item),
+        });
+        kiosk.lock(
+            &kiosk_owner_cap,
+            policy,
+            item,
+        );
+    });
+    transfer::public_transfer(payment, distribution.admin);
+    transfer::public_transfer(kiosk_owner_cap, ctx.sender());
+    transfer::public_share_object(kiosk);
 }
 
 public(package) fun add_nft<T: key + store>(

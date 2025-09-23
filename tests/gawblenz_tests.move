@@ -4,6 +4,7 @@ module gawblenz::gawblenz_test;
 use gawblenz::distribution::{Self, Distribution, OGCap, WhitelistCap};
 use gawblenz::gawblenz::{Self, Gawblen};
 use sui::coin::Coin;
+use sui::kiosk::Kiosk;
 use sui::random::Random;
 use sui::sui::SUI;
 use sui::test_scenario;
@@ -87,8 +88,13 @@ fun test_gawblenz() {
         scenario.ctx(),
     );
 
+    let (policy, policy_cap) = sui::transfer_policy::new_for_testing<
+        Gawblen,
+    >(scenario.ctx());
+
     distribution::mint(
         &mut distribution,
+        &policy,
         payment,
         1,
         &random,
@@ -97,9 +103,9 @@ fun test_gawblenz() {
 
     scenario.next_tx(admin);
 
-    let gawblen = scenario.take_from_address<Gawblen>(manny);
+    let kiosk = scenario.take_shared<Kiosk>();
 
-    assert!(gawblen.token_id() == 1, 0);
+    assert!(kiosk.item_count() == 1, 0);
     assert!(distribution.items_length() == 2, 0);
     assert!(distribution.total_minted() == 1, 0);
     assert!(distribution.og_minted() == 0, 0);
@@ -115,6 +121,7 @@ fun test_gawblenz() {
 
     distribution::mint(
         &mut distribution,
+        &policy,
         payment,
         1,
         &random,
@@ -122,8 +129,8 @@ fun test_gawblenz() {
     );
 
     scenario.next_tx(admin);
-    let gawblen2 = scenario.take_from_address<Gawblen>(manny);
-    assert!(gawblen2.token_id() == 3, 0);
+    let kiosk2 = scenario.take_shared<Kiosk>();
+    assert!(kiosk2.item_count() == 1, 0);
     assert!(distribution.items_length() == 1, 0);
     assert!(distribution.total_minted() == 2, 0);
     assert!(distribution.og_minted() == 0, 0);
@@ -136,9 +143,11 @@ fun test_gawblenz() {
     transfer::public_transfer(admin_cap, admin);
     transfer::public_transfer(distribution_cap, admin);
     transfer::public_transfer(payment, admin);
-    transfer::public_transfer(gawblen, manny);
-    transfer::public_transfer(gawblen2, manny);
     transfer::public_transfer(coin, admin);
+    sui::test_utils::destroy(policy_cap);
+    sui::test_utils::destroy(kiosk);
+    sui::test_utils::destroy(kiosk2);
+    sui::test_utils::destroy(policy);
     test_scenario::return_shared(distribution);
     test_scenario::return_shared(random);
 
@@ -146,7 +155,7 @@ fun test_gawblenz() {
 }
 
 #[test]
-fun test_gawblenz_og() {
+fun test_og_gawblenz() {
     let (admin, manny) = (@0x1, @0x2);
 
     let mut scenario = test_scenario::begin(@0x0);
@@ -234,8 +243,13 @@ fun test_gawblenz_og() {
         scenario.ctx(),
     );
 
+    let (policy, policy_cap) = sui::transfer_policy::new_for_testing<
+        Gawblen,
+    >(scenario.ctx());
+
     distribution::og_mint(
         &mut distribution,
+        &policy,
         payment,
         &mut og_cap,
         1,
@@ -245,9 +259,9 @@ fun test_gawblenz_og() {
 
     scenario.next_tx(admin);
 
-    let gawblen = scenario.take_from_address<Gawblen>(manny);
+    let kiosk = scenario.take_shared<Kiosk>();
 
-    assert!(gawblen.token_id() == 2, 0);
+    assert!(kiosk.item_count() == 1, 0);
     assert!(distribution.items_length() == 2, 0);
     assert!(distribution.total_minted() == 1, 0);
     assert!(distribution.og_minted() == 1, 0);
@@ -263,9 +277,12 @@ fun test_gawblenz_og() {
     transfer::public_transfer(admin_cap, admin);
     transfer::public_transfer(distribution_cap, admin);
     transfer::public_transfer(payment, admin);
-    transfer::public_transfer(gawblen, manny);
     transfer::public_transfer(coin, admin);
     transfer::public_transfer(og_cap, manny);
+    sui::test_utils::destroy(policy_cap);
+    sui::test_utils::destroy(kiosk);
+    sui::test_utils::destroy(policy);
+
     test_scenario::return_shared(distribution);
     test_scenario::return_shared(random);
 
@@ -273,7 +290,7 @@ fun test_gawblenz_og() {
 }
 
 #[test]
-fun test_gawblenz_whitelist() {
+fun test_whitelist_gawblenz() {
     let (admin, manny) = (@0x1, @0x2);
 
     let mut scenario = test_scenario::begin(@0x0);
@@ -361,8 +378,13 @@ fun test_gawblenz_whitelist() {
         scenario.ctx(),
     );
 
+    let (policy, policy_cap) = sui::transfer_policy::new_for_testing<
+        Gawblen,
+    >(scenario.ctx());
+
     distribution::whitelist_mint(
         &mut distribution,
+        &policy,
         payment,
         &mut whitelist_cap,
         1,
@@ -372,9 +394,9 @@ fun test_gawblenz_whitelist() {
 
     scenario.next_tx(admin);
 
-    let gawblen = scenario.take_from_address<Gawblen>(manny);
+    let kiosk = scenario.take_shared<Kiosk>();
 
-    assert!(gawblen.token_id() == 2, 0);
+    assert!(kiosk.item_count() == 1, 0);
     assert!(distribution.items_length() == 2, 0);
     assert!(distribution.total_minted() == 1, 0);
     assert!(distribution.og_minted() == 0, 0);
@@ -390,9 +412,12 @@ fun test_gawblenz_whitelist() {
     transfer::public_transfer(admin_cap, admin);
     transfer::public_transfer(distribution_cap, admin);
     transfer::public_transfer(payment, admin);
-    transfer::public_transfer(gawblen, manny);
     transfer::public_transfer(coin, admin);
     transfer::public_transfer(whitelist_cap, manny);
+    transfer::public_transfer(policy_cap, admin);
+    sui::test_utils::destroy(kiosk);
+    sui::test_utils::destroy(policy);
+
     test_scenario::return_shared(distribution);
     test_scenario::return_shared(random);
 
@@ -465,6 +490,10 @@ fun test_generate_and_mint_all() {
 
     let mint_batch_10 = admin_cap.max_id() / 10;
 
+    let (policy, policy_cap) = sui::transfer_policy::new_for_testing<
+        Gawblen,
+    >(scenario.ctx());
+
     // mint all the NFTs
     mint_batch_10.do!(|_| {
         let payment = coin.split(
@@ -474,6 +503,7 @@ fun test_generate_and_mint_all() {
 
         distribution::mint(
             &mut distribution,
+            &policy,
             payment,
             10,
             &random,
@@ -490,6 +520,7 @@ fun test_generate_and_mint_all() {
 
     distribution::mint(
         &mut distribution,
+        &policy,
         payment,
         3,
         &random,
@@ -505,6 +536,9 @@ fun test_generate_and_mint_all() {
     transfer::public_transfer(distribution_cap, admin);
     test_scenario::return_shared(distribution);
     transfer::public_transfer(coin, admin);
+    sui::test_utils::destroy(policy_cap);
+    sui::test_utils::destroy(policy);
+
     test_scenario::return_shared(random);
 
     scenario.end();
@@ -581,6 +615,10 @@ fun test_generate_and_mint_all_og() {
         scenario.ctx(),
     );
 
+    let (policy, policy_cap) = sui::transfer_policy::new_for_testing<
+        Gawblen,
+    >(scenario.ctx());
+
     scenario.next_tx(admin);
 
     let mut og_cap = scenario.take_from_address<OGCap>(admin);
@@ -595,6 +633,7 @@ fun test_generate_and_mint_all_og() {
 
         distribution::og_mint(
             &mut distribution,
+            &policy,
             payment,
             &mut og_cap,
             10,
@@ -612,6 +651,7 @@ fun test_generate_and_mint_all_og() {
 
     distribution::og_mint(
         &mut distribution,
+        &policy,
         payment,
         &mut og_cap,
         3,
@@ -629,6 +669,8 @@ fun test_generate_and_mint_all_og() {
     transfer::public_transfer(og_cap, admin);
     test_scenario::return_shared(distribution);
     transfer::public_transfer(coin, admin);
+    sui::test_utils::destroy(policy_cap);
+    sui::test_utils::destroy(policy);
     test_scenario::return_shared(random);
 
     scenario.end();
@@ -705,6 +747,10 @@ fun test_generate_and_mint_all_whitelist() {
         scenario.ctx(),
     );
 
+    let (policy, policy_cap) = sui::transfer_policy::new_for_testing<
+        Gawblen,
+    >(scenario.ctx());
+
     scenario.next_tx(admin);
 
     let mut whitelist_cap = scenario.take_from_address<WhitelistCap>(admin);
@@ -719,6 +765,7 @@ fun test_generate_and_mint_all_whitelist() {
 
         distribution::whitelist_mint(
             &mut distribution,
+            &policy,
             payment,
             &mut whitelist_cap,
             10,
@@ -736,6 +783,7 @@ fun test_generate_and_mint_all_whitelist() {
 
     distribution::whitelist_mint(
         &mut distribution,
+        &policy,
         payment,
         &mut whitelist_cap,
         3,
@@ -753,6 +801,8 @@ fun test_generate_and_mint_all_whitelist() {
     transfer::public_transfer(whitelist_cap, admin);
     test_scenario::return_shared(distribution);
     transfer::public_transfer(coin, admin);
+    sui::test_utils::destroy(policy_cap);
+    sui::test_utils::destroy(policy);
     test_scenario::return_shared(random);
 
     scenario.end();

@@ -46,3 +46,11 @@ dependencies = [
 compiler-version = "1.56.3"
 edition = "2024.beta"
 flavor = "sui"
+
+[env]
+
+[env.testnet-mysten]
+chain-id = "4c78adac"
+original-published-id = "0xf660b511faa41cc73610b64a3f6191bfbb5160d46970e5807642573b7478862c"
+latest-published-id = "0xf660b511faa41cc73610b64a3f6191bfbb5160d46970e5807642573b7478862c"
+published-version = "1"

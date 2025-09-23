@@ -47,8 +47,8 @@ async function main() {
   });
 
   tpTx
+    .addLockRule()
     .addRoyaltyRule(percentageToBasisPoints(5), 0)
-    // Transfers the `TransferPolicyCap` to the user and shares the transfer policy.
     .shareAndTransferCap(signer_address);
 
   tpTx.transaction.setGasBudget(3000000000);
