@@ -12,15 +12,13 @@ const ENotCompletedProcess: u64 = 1;
 /// Mint limit exceeded.
 const EMintLimitExceeded: u64 = 2;
 
-public struct GawblenClaimed() has copy, store, drop;
-
 public struct Gawblen has key, store {
     id: UID,
     name: String,
     description: String,
     image_url: String,
-    number: u16,
-    traits: VecMap<String, String>,
+    token_id: u16,
+    attributes: VecMap<String, String>,
 }
 
 public struct AdminCap has key, store {
@@ -44,7 +42,7 @@ public fun create(
     cap: &mut AdminCap,
     distribution: &mut Distribution<Gawblen>,
     image_url: String,
-    traits: VecMap<String, String>,
+    attributes: VecMap<String, String>,
     ctx: &mut TxContext,
 ) {
     assert!(cap.current <= cap.max_id, EMintLimitExceeded);
@@ -58,24 +56,24 @@ public fun create(
         name,
         description,
         image_url,
-        number: cap.current,
-        traits,
+        token_id: cap.current,
+        attributes,
     };
 
     distribution.add_nft(nft);
     cap.current = cap.current + 1;
 }
 
-public fun number(gawblenz: &Gawblen): &u16 {
-    &gawblenz.number
+public fun token_id(gawblen: &Gawblen): &u16 {
+    &gawblen.token_id
 }
 
-public fun image_url(gawblenz: &Gawblen): String {
-    gawblenz.image_url
+public fun image_url(gawblen: &Gawblen): String {
+    gawblen.image_url
 }
 
-public fun traits(gawblenz: &Gawblen): VecMap<String, String> {
-    gawblenz.traits
+public fun attributes(gawblen: &Gawblen): VecMap<String, String> {
+    gawblen.attributes
 }
 
 public fun burn_cap(cap: AdminCap) {

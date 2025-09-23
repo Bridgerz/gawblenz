@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@mysten/bcs": "^1.8.0",
+    "@mysten/kiosk": "^0.13.1",
     "@mysten/sui": "^1.36.0",
     "dotenv": "^16.4.7"
   }
